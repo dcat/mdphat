@@ -29,7 +29,7 @@ static int d;
 
 
 __u8
-smbus_set(__u8 reg, __u8 arg) {
+i2c_set(__u8 reg, __u8 arg) {
 	__u8 buf[2];
 
 	buf[0] = reg;
@@ -39,7 +39,7 @@ smbus_set(__u8 reg, __u8 arg) {
 }
 
 __u8
-smbus_get(__u8 reg, __u8 *ret, size_t n) {
+i2c_get(__u8 reg, __u8 *ret, size_t n) {
 	__u8 r;
 
 	r = reg | 0xFF;
@@ -51,7 +51,7 @@ smbus_get(__u8 reg, __u8 *ret, size_t n) {
 }
 
 __u8
-smbus_adr(__u8 addr) {
+i2c_adr(__u8 addr) {
 	return ioctl(d, I2C_SLAVE, addr);
 }
 
@@ -62,7 +62,7 @@ printchar(int x, int chr) {
 
 	reg = x % 2 ? CMD_MATRIX2 : CMD_MATRIX1;
 
-	smbus_adr(MDH_ADR + x / 2);
+	i2c_adr(MDH_ADR + x / 2);
 
 	switch (chr) {
 	case '\0':
@@ -81,10 +81,10 @@ printchar(int x, int chr) {
 				buf[i] |= font[chr][y] & (1 << i) ? 1 << y : 0;
 
 		for (i = 0; i < 7; i++)
-			smbus_set(reg + i, buf[i]);
+			i2c_set(reg + i, buf[i]);
 	} else
 		for (i = 0; i < 7; i++)
-			smbus_set(reg + i, font[chr][i]);
+			i2c_set(reg + i, font[chr][i]);
 }
 
 void
@@ -101,23 +101,23 @@ printstring(char *str) {
 }
 
 void
-smbus_set_all(__u8 reg, __u8 val) {
+i2c_set_all(__u8 reg, __u8 val) {
 	int i;
 
 	for (i = 0; i < 3; i++) {
-		smbus_adr(MDH_ADR + i);
-		smbus_set(reg, val);
+		i2c_adr(MDH_ADR + i);
+		i2c_set(reg, val);
 	}
 }
 
 void
 update() {
-	smbus_set_all(CMD_UPDATE, 0);
+	i2c_set_all(CMD_UPDATE, 0);
 }
 
 void
 reset() {
-	smbus_set_all(CMD_RESET, 0);
+	i2c_set_all(CMD_RESET, 0);
 }
 
 void
@@ -130,7 +130,7 @@ clear() {
 
 void
 brightness(int val) {
-	smbus_set_all(CMD_BRIGHT, val);
+	i2c_set_all(CMD_BRIGHT, val);
 }
 
 
@@ -148,7 +148,7 @@ main(int argc, char **argv) {
 		err(1, "open '%s'", I2C_DEV);
 
 	reset();
-	smbus_set_all(CMD_MODE, DEFAULT_MODE);
+	i2c_set_all(CMD_MODE, DEFAULT_MODE);
 
 	ARGBEGIN {
 	case 'r':
